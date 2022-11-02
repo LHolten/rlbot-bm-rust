@@ -1,0 +1,11 @@
+[package]
+name = "rlbot-bm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rlbot-bm-sys = { git = "https://github.com/LHolten/rlbot-bm-sys" }
+pico-args = "0.5"
+ref-cast = "1.0"
