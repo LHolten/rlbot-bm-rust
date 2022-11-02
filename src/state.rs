@@ -1,3 +1,5 @@
+use std::ops::{Index, Sub};
+
 use ref_cast::RefCast;
 
 #[derive(RefCast)]
@@ -55,6 +57,8 @@ impl Ball {
     }
 }
 
+#[derive(RefCast)]
+#[repr(transparent)]
 pub struct Car(rlbot_bm_sys::Car);
 
 impl Physics for Car {
@@ -76,15 +80,26 @@ impl Physics for Car {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Hash)]
-pub struct Team(u8);
+pub struct TeamId(u8);
+
+/// taking the difference of two instances gives you the number of ticks
+pub struct Instant(i32);
+
+impl Sub for Instant {
+    type Output = i32;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.0 - rhs.0
+    }
+}
 
 impl Car {
     pub fn boost(&self) -> f32 {
         self.0.boost
     }
 
-    pub fn team(&self) -> Team {
-        Team(self.0.team)
+    pub fn team(&self) -> TeamId {
+        TeamId(self.0.team)
     }
 
     pub fn hitbox_size(&self) -> &Vec3 {
@@ -95,12 +110,65 @@ impl Car {
         Vec3::ref_cast(&self.0.hitboxOffset)
     }
 
-    /// tick on which the car was demolished
-    pub fn demolished_at(&self) -> u32 {
-        self.0.demolishedAt as u32
+    /// Instant on which the car was demolished
+    pub fn demolished_at(&self) -> Option<Instant> {
+        (self.0.demolished() != 0).then_some(Instant(self.0.demolishedAt))
     }
 
-    pub fn flipped_at(&self) -> u32 {
-        self.0.flippedAt as u32
+    pub fn flipped_at(&self) -> Option<Instant> {
+        (self.0.hasFlip() == 0).then_some(Instant(self.0.flippedAt))
+    }
+
+    pub fn jumped_at(&self) -> Option<Instant> {
+        (self.0.jumped() != 0).then_some(unimplemented!())
+    }
+
+    pub fn is_supersonic(&self) -> bool {
+        self.0.superSonic() != 0
+    }
+}
+
+#[derive(RefCast)]
+#[repr(transparent)]
+pub struct GameState(rlbot_bm_sys::GameStateObj);
+
+#[derive(RefCast)]
+#[repr(transparent)]
+pub struct CarSlice([rlbot_bm_sys::Car]);
+
+impl CarSlice {
+    pub fn iter(&self) -> impl Iterator<Item = &Car> {
+        self.0.iter().map(Car::ref_cast)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+pub struct CarId(usize);
+
+impl Index<CarId> for CarSlice {
+    type Output = Car;
+
+    fn index(&self, index: CarId) -> &Self::Output {
+        Car::ref_cast(&self.0[index.0])
+    }
+}
+
+#[derive(RefCast)]
+#[repr(transparent)]
+pub struct BallSlice([rlbot_bm_sys::Ball]);
+
+impl BallSlice {
+    pub fn iter(&self) -> impl Iterator<Item = &Ball> {
+        self.0.iter().map(Ball::ref_cast)
+    }
+}
+
+impl GameState {
+    pub fn cars(&self) -> &CarSlice {
+        CarSlice::ref_cast(&self.0.cars[..self.0.numCars as usize])
+    }
+
+    pub fn balls(&self) -> &BallSlice {
+        BallSlice::ref_cast(&self.0.balls[..self.0.numBalls as usize])
     }
 }
