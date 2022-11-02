@@ -3,8 +3,7 @@ use std::path::PathBuf;
 
 fn main() {
     let dst = cmake::Config::new("RLBot-BM")
-        .define("CMAKE_C_COMPILER", "clang")
-        .define("CMAKE_CXX_COMPILER", "clang++")
+        .define("ENABLE_IPO", "OFF")
         .build_target("all")
         .build();
 
