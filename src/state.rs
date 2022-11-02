@@ -163,4 +163,9 @@ impl GameState {
     pub fn balls(&self) -> &BallSlice {
         BallSlice::ref_cast(&self.0.balls[..self.0.numBalls as usize])
     }
+
+    pub fn is_round_active(&self) -> bool {
+        // SAFETY: both variants of this union are always valid
+        unsafe { self.0.__bindgen_anon_1.__bindgen_anon_1 }.roundActive() != 0
+    }
 }
