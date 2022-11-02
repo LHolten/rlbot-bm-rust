@@ -1,21 +1,23 @@
 pub mod input;
 pub mod state;
 
-use std::{cell::Cell, fmt::Display, marker::PhantomData, os::raw::c_int, ptr::NonNull};
+use std::{cell::Cell, fmt::Debug, marker::PhantomData, os::raw::c_int, ptr::NonNull};
 
 use pico_args::Arguments;
 use rlbot_bm_sys::*;
 
+use crate::state::{CarId, GameState};
+
 // The PhantomData Cell is used to make the type !Sync
 pub struct RlBotBm {
     handle: NonNull<RLBotBM_H>,
-    index: usize,
+    pub index: CarId,
     input: ControllerInput,
     not_sync: PhantomData<Cell<()>>,
 }
 
 impl RlBotBm {
-    pub fn new() -> Result<Self, impl Display> {
+    pub fn new() -> Result<Self, impl Debug> {
         let mut args = Arguments::from_env();
         let player_index = args
             .value_from_str("--player-index")
@@ -27,16 +29,16 @@ impl RlBotBm {
 
         Ok::<Self, &str>(Self {
             handle,
-            index: player_index,
+            index: CarId(player_index),
             input: Default::default(),
             not_sync: PhantomData,
         })
     }
 
     /// returns whether it had to wait
-    pub fn next_state(&mut self, state: &mut GameStateObj) -> bool {
+    pub fn next_state(&mut self, state: &mut GameState) -> bool {
         let handle = self.handle.as_ptr();
-        unsafe { RLBotBM_pollNextTick(handle, state) }
+        unsafe { RLBotBM_pollNextTick(handle, &mut state.0) }
     }
 
     pub fn set_bot_input(&mut self, input: &input::ControllerInput) {
@@ -55,7 +57,7 @@ impl RlBotBm {
             self.input.itemTarget = item_target
         }
 
-        unsafe { RLBotBM_setBotInput(handle, &self.input, self.index as c_int) }
+        unsafe { RLBotBM_setBotInput(handle, &self.input, self.index.0 as c_int) }
     }
 }
 
@@ -65,29 +67,3 @@ impl Drop for RlBotBm {
         unsafe { RLBotBM_destroy(handle) };
     }
 }
-
-// fn as_dyn_display<T: Display + 'static>(val: T) -> Box<dyn Display> {
-//     Box::new(val)
-// }
-
-// pub fn run_bot<B: rlbot::Bot>(bot: B) -> Result<(), impl Display> {
-//     fn internal<B: rlbot::Bot>(mut bot: B) -> Result<(), Box<dyn Display>> {
-//         let mut handle = RlBotBm::new().map_err(as_dyn_display)?;
-
-//         let args = rlbot::parse_framework_args()
-//             .map_err(|()| as_dyn_display("could not parse framework arguments"))?
-//             .ok_or_else(|| as_dyn_display("not launched by framework"))?;
-
-//         let player_index = args.player_index as usize;
-
-//         bot.set_player_index(player_index);
-
-//         let mut state = Default::default();
-//         loop {
-//             handle.next_state(&mut state);
-//             let input = bot.tick(&state.convert());
-//             handle.set_bot_input(&input.convert(), player_index);
-//         }
-//     }
-//     internal(bot)
-// }

@@ -2,31 +2,23 @@ use std::ops::{Index, Sub};
 
 use ref_cast::RefCast;
 
-#[derive(RefCast)]
-#[repr(transparent)]
-pub struct Vec3(rlbot_bm_sys::Vec3);
+pub type Vec3 = [f32; 3];
 
-impl Vec3 {
-    pub fn data(&self) -> [f32; 3] {
-        [self.0.x, self.0.y, self.0.z]
-    }
+fn convert_vec3(vec3: &rlbot_bm_sys::Vec3) -> Vec3 {
+    [vec3.x, vec3.y, vec3.z]
 }
 
-#[derive(RefCast)]
-#[repr(transparent)]
-pub struct Quat(rlbot_bm_sys::Quat);
+pub type Quat = (f32, Vec3);
 
-impl Quat {
-    pub fn data(&self) -> (f32, [f32; 3]) {
-        (self.0.w, [self.0.x, self.0.y, self.0.z])
-    }
+fn convert_quat(quat: &rlbot_bm_sys::Quat) -> Quat {
+    (quat.w, [quat.x, quat.y, quat.z])
 }
 
 pub trait Physics {
-    fn orientation(&self) -> &Quat;
-    fn position(&self) -> &Vec3;
-    fn velocity(&self) -> &Vec3;
-    fn angular_velocity(&self) -> &Vec3;
+    fn orientation(&self) -> Quat;
+    fn position(&self) -> Vec3;
+    fn velocity(&self) -> Vec3;
+    fn angular_velocity(&self) -> Vec3;
 }
 
 #[derive(RefCast)]
@@ -34,20 +26,20 @@ pub trait Physics {
 pub struct Ball(rlbot_bm_sys::Ball);
 
 impl Physics for Ball {
-    fn orientation(&self) -> &Quat {
-        Quat::ref_cast(&self.0.orientation)
+    fn orientation(&self) -> Quat {
+        convert_quat(&self.0.orientation)
     }
 
-    fn position(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.position)
+    fn position(&self) -> Vec3 {
+        convert_vec3(&self.0.position)
     }
 
-    fn velocity(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.velocity)
+    fn velocity(&self) -> Vec3 {
+        convert_vec3(&self.0.velocity)
     }
 
-    fn angular_velocity(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.angularVelocity)
+    fn angular_velocity(&self) -> Vec3 {
+        convert_vec3(&self.0.angularVelocity)
     }
 }
 
@@ -62,20 +54,20 @@ impl Ball {
 pub struct Car(rlbot_bm_sys::Car);
 
 impl Physics for Car {
-    fn orientation(&self) -> &Quat {
-        Quat::ref_cast(&self.0.orientation)
+    fn orientation(&self) -> Quat {
+        convert_quat(&self.0.orientation)
     }
 
-    fn position(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.position)
+    fn position(&self) -> Vec3 {
+        convert_vec3(&self.0.position)
     }
 
-    fn velocity(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.velocity)
+    fn velocity(&self) -> Vec3 {
+        convert_vec3(&self.0.velocity)
     }
 
-    fn angular_velocity(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.angularVelocity)
+    fn angular_velocity(&self) -> Vec3 {
+        convert_vec3(&self.0.angularVelocity)
     }
 }
 
@@ -102,12 +94,12 @@ impl Car {
         TeamId(self.0.team)
     }
 
-    pub fn hitbox_size(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.hitbox)
+    pub fn hitbox_size(&self) -> Vec3 {
+        convert_vec3(&self.0.hitbox)
     }
 
-    pub fn hitbox_offset(&self) -> &Vec3 {
-        Vec3::ref_cast(&self.0.hitboxOffset)
+    pub fn hitbox_offset(&self) -> Vec3 {
+        convert_vec3(&self.0.hitboxOffset)
     }
 
     /// Instant on which the car was demolished
@@ -128,9 +120,9 @@ impl Car {
     }
 }
 
-#[derive(RefCast)]
+#[derive(RefCast, Default)]
 #[repr(transparent)]
-pub struct GameState(rlbot_bm_sys::GameStateObj);
+pub struct GameState(pub(crate) rlbot_bm_sys::GameStateObj);
 
 #[derive(RefCast)]
 #[repr(transparent)]
@@ -143,7 +135,7 @@ impl CarSlice {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
-pub struct CarId(usize);
+pub struct CarId(pub(crate) usize);
 
 impl Index<CarId> for CarSlice {
     type Output = Car;

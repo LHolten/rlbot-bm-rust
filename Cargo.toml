@@ -9,3 +9,7 @@ edition = "2021"
 rlbot-bm-sys = { git = "https://github.com/LHolten/rlbot-bm-sys" }
 pico-args = "0.5"
 ref-cast = "1.0"
+
+[dev-dependencies]
+quaternion = "1.0"
+vecmath = "1.0"
