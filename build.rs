@@ -2,13 +2,18 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    let dst = cmake::Config::new("RLBot-BM")
-        .define("ENABLE_IPO", "OFF")
-        .build_target("all")
-        .build();
+    if cfg!(feature = "dynamic") {
+        println!("cargo:rustc-link-lib=dylib=RLBot-BM");
+    } else {
+        let dst = cmake::Config::new("RLBot-BM")
+            .define("ENABLE_IPO", "OFF")
+            .build_target("all")
+            .build();
 
-    println!("cargo:rustc-link-search=native={}\\build", dst.display());
-    println!("cargo:rustc-link-lib=static=RLBot-BM");
+        println!("cargo:rustc-link-search=native={}\\build", dst.display());
+        println!("cargo:rustc-link-lib=static=RLBot-BM");
+    }
+
     println!("cargo:rustc-link-lib=dylib=stdc++");
 
     let bindings = bindgen::Builder::default()
@@ -17,6 +22,7 @@ fn main() {
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .layout_tests(false)
         .newtype_enum("DropShotObj_TileState")
+        .clang_arg("-fdeclspec")
         .generate()
         .expect("Unable to generate bindings");
 
