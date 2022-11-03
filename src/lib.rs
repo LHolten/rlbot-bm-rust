@@ -1,7 +1,13 @@
 pub mod input;
 pub mod state;
 
-use std::{cell::Cell, fmt::Debug, marker::PhantomData, os::raw::c_int, ptr::NonNull};
+use std::{
+    cell::Cell,
+    ffi::{c_int, c_ulong},
+    fmt::Debug,
+    marker::PhantomData,
+    ptr::NonNull,
+};
 
 use pico_args::Arguments;
 use rlbot_bm_sys::*;
@@ -49,12 +55,13 @@ impl RlBotBm {
         self.input.pitch = input.pitch;
         self.input.yaw = input.yaw;
         self.input.roll = input.roll;
-        self.input.set_handbrake(input.handbrake as u32);
-        self.input.set_jump(input.jump as u32);
-        self.input.set_boost(input.boost as u32);
-        self.input.set_useItem(input.item_target.is_some() as u32);
+        self.input.set_handbrake(input.handbrake as c_ulong);
+        self.input.set_jump(input.jump as c_ulong);
+        self.input.set_boost(input.boost as c_ulong);
+        self.input
+            .set_useItem(input.item_target.is_some() as c_ulong);
         if let Some(item_target) = input.item_target {
-            self.input.itemTarget = item_target
+            self.input.itemTarget = item_target as c_ulong
         }
 
         unsafe { RLBotBM_setBotInput(handle, &self.input, self.index.0 as c_int) }

@@ -1,4 +1,7 @@
-use std::ops::{Index, Sub};
+use std::{
+    mem::transmute,
+    ops::{Index, Sub},
+};
 
 use ref_cast::RefCast;
 
@@ -124,44 +127,26 @@ impl Car {
 #[repr(transparent)]
 pub struct GameState(pub(crate) rlbot_bm_sys::GameStateObj);
 
-#[derive(RefCast)]
-#[repr(transparent)]
-pub struct CarSlice([rlbot_bm_sys::Car]);
-
-impl CarSlice {
-    pub fn iter(&self) -> impl Iterator<Item = &Car> {
-        self.0.iter().map(Car::ref_cast)
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct CarId(pub(crate) usize);
 
-impl Index<CarId> for CarSlice {
+impl Index<CarId> for [Car] {
     type Output = Car;
 
     fn index(&self, index: CarId) -> &Self::Output {
-        Car::ref_cast(&self.0[index.0])
-    }
-}
-
-#[derive(RefCast)]
-#[repr(transparent)]
-pub struct BallSlice([rlbot_bm_sys::Ball]);
-
-impl BallSlice {
-    pub fn iter(&self) -> impl Iterator<Item = &Ball> {
-        self.0.iter().map(Ball::ref_cast)
+        &self[index.0]
     }
 }
 
 impl GameState {
-    pub fn cars(&self) -> &CarSlice {
-        CarSlice::ref_cast(&self.0.cars[..self.0.numCars as usize])
+    pub fn cars(&self) -> &[Car] {
+        // SAFETY: Car implements RefCast
+        unsafe { transmute(&self.0.cars[..self.0.numCars as usize]) }
     }
 
-    pub fn balls(&self) -> &BallSlice {
-        BallSlice::ref_cast(&self.0.balls[..self.0.numBalls as usize])
+    pub fn balls(&self) -> &[Ball] {
+        // SAFETY: Ball implements RefCast
+        unsafe { transmute(&self.0.balls[..self.0.numBalls as usize]) }
     }
 
     pub fn is_round_active(&self) -> bool {

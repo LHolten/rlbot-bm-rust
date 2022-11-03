@@ -17,17 +17,14 @@ fn main() {
         }
 
         let car = &state.cars()[framework.index];
-        let ball = state
-            .balls()
-            .iter()
-            .next()
-            .expect("there should be at least one ball");
+        let ball = &state.balls()[0];
 
         let ball_direction = vec3_normalized_sub(ball.position(), car.position());
-        let local_ball_direction = rotate_vector(conj(car.orientation()), ball_direction);
+        let global_to_local = conj(car.orientation());
+        let local_ball_direction = rotate_vector(global_to_local, ball_direction);
+
         input.steer = local_ball_direction[1].signum();
         input.throttle = 1.0;
-
         framework.set_bot_input(&input)
     }
 }
