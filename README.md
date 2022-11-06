@@ -11,3 +11,7 @@ The wrappers make use of a lot of new-types to hide implementation details. This
 - New-types for different kinds of indices.
 - `Quat` and `Vec3` types are compatible with `quaternion` and `vecmath` crates.
 - Combined return types like `jumped_at() -> Option<Instant>` (it combines `jumped` with a timestamp). 
+
+## Example
+
+You can see an example ATBA implementation in [atba.rs](rlbot-bm/examples/atba.rs).
