@@ -1,3 +1,4 @@
+#[non_exhaustive]
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ControllerInput {
     pub throttle: f32,
@@ -9,5 +10,5 @@ pub struct ControllerInput {
     pub jump: bool,
     pub boost: bool,
     /// this is probably a car index
-    pub item_target: Option<u32>,
+    pub(crate) item_target: Option<u32>,
 }
