@@ -6,7 +6,7 @@ fn main() {
     let mut rlbot_bm = rlbot_bm::RlBotBm::new().expect("could not configure RLBot-BM");
     let mut input = ControllerInput::default();
     loop {
-        let car = &rlbot_bm.state.cars()[rlbot_bm.index];
+        let car = &rlbot_bm.state.cars()[rlbot_bm.car_id];
         let ball = &rlbot_bm.state.balls()[0];
 
         let ball_direction = vec3_normalized_sub(ball.position(), car.position());

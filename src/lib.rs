@@ -16,7 +16,7 @@ use crate::state::{CarId, GameState};
 /// you should call these methods on a separate thread.
 pub struct RlBotBm {
     handle: NonNull<rlbot_bm_sys::RLBotBM_H>,
-    pub index: CarId,
+    pub car_id: CarId,
     input: rlbot_bm_sys::ControllerInput,
     pub state: GameState,
 }
@@ -35,7 +35,7 @@ impl RlBotBm {
 
         let mut framework = Self {
             handle,
-            index: CarId(player_index),
+            car_id: CarId(player_index),
             input: Default::default(),
             state: GameState::default(),
         };
@@ -71,7 +71,7 @@ impl RlBotBm {
             self.input.itemTarget = item_target as c_ulong
         }
 
-        unsafe { rlbot_bm_sys::RLBotBM_setBotInput(handle, &self.input, self.index.0 as c_int) }
+        unsafe { rlbot_bm_sys::RLBotBM_setBotInput(handle, &self.input, self.car_id.0 as c_int) }
 
         self.wait_next_tick();
     }
