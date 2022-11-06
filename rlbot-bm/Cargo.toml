@@ -1,0 +1,16 @@
+[package]
+name = "rlbot-bm"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+dynamic = ["rlbot-bm-sys/dynamic"]
+
+[dependencies]
+rlbot-bm-sys = { path = "../rlbot-bm-sys" }
+pico-args = "0.5"
+ref-cast = "1.0"
+
+[dev-dependencies]
+quaternion = "1.0"
+vecmath = "1.0"
