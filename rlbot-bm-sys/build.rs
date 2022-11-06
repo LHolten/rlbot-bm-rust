@@ -2,7 +2,7 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    if cfg!(feature = "dynamic") {
+    if cfg!(feature = "dynamic") || cfg!(not(windows)) {
         println!("cargo:rustc-link-lib=dylib=RLBot-BM");
     } else {
         let dst = cmake::Config::new("RLBot-BM")
